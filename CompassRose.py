@@ -42,25 +42,27 @@ class Compass():
             'North by west'
         ]
 
+    def __iter__(self):
+        return iter(self.points)
+
     def is_cardinal(self, point):
         'Returns true if point is North, East, West or South, false otherwise'
-        return self.points.index(point) % 8 == 0
+        return self.index(point) % 8 == 0
 
     def is_ordinal(self, point):
         'Returns true if point is Northeast, Southeast, Southwest or Northwest, false otherwise'
-        return self.points.index(point) % 4 == 0 and not self.is_cardinal(point)
+        return self.index(point) % 4 == 0 and not self.is_cardinal(point)
 
     def is_half_wind(self, point):
-        return self.points.index(point) % 2 == 0 and not self.is_cardinal(point) and not self.is_ordinal(point)
+        return self.index(point) % 2 == 0 and not self.is_cardinal(point) and not self.is_ordinal(point)
 
     def abbreviate(self, point):
         "Abbreviate the given compass point"
         pnt = point.lower()
-        translation_table = dict.fromkeys(map(ord, ' -'))
         # Remove spaces and hyphens
         pnt = pnt.translate(dict.fromkeys(map(ord, ' -'), None))
         abbrev = ""
-        trans = { 'north': 'N', 'east': 'E', 'south': 'S', 'west': 'W', 'by': 'b' }
+        trans = { 'north': 'N', 'east': 'E', 'south': 'S', 'west': 'W', 'by': ' by ' }
         while len(pnt):
             for p in trans.keys():
                 if pnt.startswith(p):
@@ -77,7 +79,7 @@ class Compass():
 
     def angle(self, point):
         assert point in self.points
-        return 360.0 / len(self.points) * self.points.index(point)
+        return 360.0 / len(self.points) * self.index(point)
 
     def index(self, point):
         assert point in self.points
@@ -90,26 +92,27 @@ class Compass():
         assert(not self.is_ordinal('North'))
 
 def draw_arrow(pdf, angle, length):
+    w = 1.0
     pdf.rotate(-angle)
     pdf.setFillColor('black')
     p = pdf.beginPath()
     p.moveTo(0, 0)
     p.lineTo(0, length)
-    p.lineTo(1 * cm, 1 * cm)
+    p.lineTo(w * cm, w * cm)
     p.close()
     pdf.drawPath(p, fill=1)
     pdf.setFillColor('white')
     p = pdf.beginPath()
     p.moveTo(0, 0)
     p.lineTo(0, length)
-    p.lineTo(-1 * cm, 1 * cm)
+    p.lineTo(-w * cm, w * cm)
     p.close()
     pdf.drawPath(p, fill=1)
     pdf.setFillColor('black')
     pdf.rotate(angle)
 
 def draw_compass_card(compass):
-    
+
     pdf = Canvas("CompassRose.pdf", pagesize=portrait(A4))
 
     width, height = portrait(A4)
@@ -125,7 +128,7 @@ def draw_compass_card(compass):
 
     pdf.setLineWidth(0.25)
 
-    for point in compass.points:
+    for point in compass:
         pdf.rotate(-compass.angle(point))
 
         pdf.line(0, 1 * cm, 0, inner_radius)
@@ -137,7 +140,7 @@ def draw_compass_card(compass):
         elif compass.is_half_wind(point):
             pdf.setFont("Times-Roman", 12)
             p = pdf.beginPath()
-            p.moveTo(0, inner_radius)
+            p.moveTo(0, inner_radius - 0.015 * cm)
             p.lineTo(0.1 * cm, inner_radius - 0.75 * cm)
             p.lineTo(-0.1 * cm, inner_radius - 0.75 * cm)
             p.close()
@@ -146,11 +149,11 @@ def draw_compass_card(compass):
             pdf.setFont("Times-Roman", 8)
 
         pdf.drawCentredString(0, x_centre - 2.25 * cm, "{}".format(compass.abbreviate(point)))
-            
+
         pdf.rotate(compass.angle(point))
 
-    cardinals = [pt for pt in compass.points if compass.is_cardinal(pt)]
-    ordinals = [pt for pt in compass.points if compass.is_ordinal(pt)]
+    cardinals = [pt for pt in compass if compass.is_cardinal(pt)]
+    ordinals = [pt for pt in compass if compass.is_ordinal(pt)]
 
     for point in ordinals:
         draw_arrow(pdf, compass.angle(point), inner_radius)
