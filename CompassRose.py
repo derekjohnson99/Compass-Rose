@@ -58,16 +58,12 @@ class Compass():
 
     def abbreviate(self, point):
         "Abbreviate the given compass point"
-        pnt = point.lower()
-        # Remove spaces and hyphens
-        pnt = pnt.translate(dict.fromkeys(map(ord, ' -'), None))
-        abbrev = ""
-        trans = { 'north': 'N', 'east': 'E', 'south': 'S', 'west': 'W', 'by': ' by ' }
-        while len(pnt):
-            for p in trans.keys():
-                if pnt.startswith(p):
-                    abbrev += trans[p]
-                    pnt = pnt[len(p):]
+        abbrev = point.lower()
+        abbrev = abbrev.replace('north', 'N')
+        abbrev = abbrev.replace('east', 'E')
+        abbrev = abbrev.replace('south', 'S')
+        abbrev = abbrev.replace('west', 'W')
+        abbrev = abbrev.replace('-', '')
         return abbrev
 
     def get_point(self, abbreviated_point):
@@ -134,9 +130,9 @@ def draw_compass_card(compass):
         pdf.line(0, 1 * cm, 0, inner_radius)
 
         if compass.is_cardinal(point):
-            pdf.setFont("Times-Roman", 24)
+            pdf.setFont("Times-Bold", 24)
         elif compass.is_ordinal(point):
-            pdf.setFont("Times-Roman", 18)
+            pdf.setFont("Times-Bold", 18)
         elif compass.is_half_wind(point):
             pdf.setFont("Times-Roman", 12)
             p = pdf.beginPath()
