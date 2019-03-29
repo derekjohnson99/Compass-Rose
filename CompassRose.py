@@ -3,6 +3,7 @@ from collections import OrderedDict
 from reportlab.pdfgen.canvas import Canvas
 from reportlab.lib.units import cm
 from reportlab.lib.pagesizes import A4, portrait, landscape
+import unittest
 
 class Compass():
 
@@ -81,11 +82,21 @@ class Compass():
         assert point in self.points
         return self.points.index(point)
 
-    def test_compass(self):
-        assert(self.is_cardinal('North'))
-        assert(not self.is_cardinal('Northwest'))
-        assert(self.is_ordinal('Northwest'))
-        assert(not self.is_ordinal('North'))
+class testCompass(unittest.TestCase):
+
+    def setUp(self):
+        self.compass = Compass()
+
+    def test_cardinals(self):
+        'Test the compass class can correctly identify cardinal points'
+        self.assertTrue(self.compass.is_cardinal('North'))
+        self.assertFalse(self.compass.is_cardinal('Northwest'))
+
+    def test_ordinals(self):
+        'Test the compass class can correctly identify ordinal points'
+        self.assertTrue(self.compass.is_ordinal('Northwest'))
+        self.assertFalse(self.compass.is_ordinal('North'))
+        self.assertFalse(self.compass.is_ordinal('Southwest by west'))
 
 def draw_arrow(pdf, angle, length):
     w = 1.0
@@ -151,10 +162,7 @@ def draw_compass_card(compass):
     cardinals = [pt for pt in compass if compass.is_cardinal(pt)]
     ordinals = [pt for pt in compass if compass.is_ordinal(pt)]
 
-    for point in ordinals:
-        draw_arrow(pdf, compass.angle(point), inner_radius)
-
-    for point in cardinals:
+    for point in ordinals + cardinals:
         draw_arrow(pdf, compass.angle(point), inner_radius)
 
     for deg in range(360):
@@ -174,6 +182,4 @@ def draw_compass_card(compass):
 
 if __name__ == '__main__':
     compass = Compass()
-    compass.test_compass()
-
     draw_compass_card(compass)
