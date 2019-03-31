@@ -1,3 +1,4 @@
+# coding: utf-8
 import math
 from collections import OrderedDict
 from reportlab.pdfgen.canvas import Canvas
@@ -88,15 +89,30 @@ class testCompass(unittest.TestCase):
         self.compass = Compass()
 
     def test_cardinals(self):
-        'Test the compass class can correctly identify cardinal points'
+        'The compass class can correctly identify cardinal points'
         self.assertTrue(self.compass.is_cardinal('North'))
         self.assertFalse(self.compass.is_cardinal('Northwest'))
 
     def test_ordinals(self):
-        'Test the compass class can correctly identify ordinal points'
+        'The compass class can correctly identify ordinal points'
         self.assertTrue(self.compass.is_ordinal('Northwest'))
         self.assertFalse(self.compass.is_ordinal('North'))
         self.assertFalse(self.compass.is_ordinal('Southwest by west'))
+
+    def test_abbreviations(self):
+        'The compass class can abbreviate points correctly'
+        self.assertEqual(self.compass.abbreviate("North-northwest"), "NNW")
+        self.assertEqual(self.compass.abbreviate("East by south"), "E by S")
+        self.assertEqual(self.compass.abbreviate("Northeast"), "NE")
+        self.assertEqual(self.compass.abbreviate(self.compass.points[1]), "N by E")
+
+    def test_angle(self):
+        'Points are at correct angle'
+        self.assertEqual(self.compass.angle("North"), 0.0)
+        self.assertEqual(self.compass.angle("South"), 180.0)
+        self.assertEqual(self.compass.angle("North-northeast"), 22.5)
+        self.assertEqual(self.compass.angle("West"), 270.0)
+        self.assertEqual(self.compass.angle("Northwest"), 315.0)
 
 def draw_arrow(pdf, angle, length):
     w = 1.0
