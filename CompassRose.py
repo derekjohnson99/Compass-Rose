@@ -101,18 +101,33 @@ class testCompass(unittest.TestCase):
 
     def test_abbreviations(self):
         'The compass class can abbreviate points correctly'
-        self.assertEqual(self.compass.abbreviate("North-northwest"), "NNW")
-        self.assertEqual(self.compass.abbreviate("East by south"), "E by S")
-        self.assertEqual(self.compass.abbreviate("Northeast"), "NE")
-        self.assertEqual(self.compass.abbreviate(self.compass.points[1]), "N by E")
+        # A selection of test points and their expected abbreviations
+        test_points = [
+            ("North-northwest", "NNW"),
+            ("East by south", "E by S"),
+            ("Northeast", "NE"),
+            (self.compass.points[1], "N by E"),
+        ]
+
+        for (point, expected_abbreviation) in test_points:
+            with self.subTest(point):
+                self.assertEqual(self.compass.abbreviate(point), expected_abbreviation)
 
     def test_angle(self):
         'Points are at correct angle'
-        self.assertEqual(self.compass.angle("North"), 0.0)
-        self.assertEqual(self.compass.angle("South"), 180.0)
-        self.assertEqual(self.compass.angle("North-northeast"), 22.5)
-        self.assertEqual(self.compass.angle("West"), 270.0)
-        self.assertEqual(self.compass.angle("Northwest"), 315.0)
+        # A selection of points, and their expected angle on the compass
+        test_points = [
+            ("North", 0.0),
+            ("South", 180.0),
+            ("North-northeast", 22.5),
+            ("West", 270.0),
+            ("Northwest", 315.0),
+            ("North by west", 360.0 - 11.25),
+        ]
+
+        for (point, expected_angle) in test_points:
+            with self.subTest(point):
+                self.assertEqual(self.compass.angle(point), expected_angle)
 
 def draw_arrow(pdf, angle, length):
     w = 1.0
