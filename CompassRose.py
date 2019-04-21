@@ -160,22 +160,22 @@ def draw_compass_card():
     pdf = Canvas("CompassRose.pdf", pagesize=portrait(A4))
 
     width, height = portrait(A4)
-    x_centre = width / 2.0
+    compass_radius = width / 2.0
 
     pdf.saveState()
-    pdf.translate(x_centre, x_centre)
+    pdf.translate(compass_radius, compass_radius)
 
-    inner_radius = x_centre - 2.5 * cm
+    radii = [compass_radius - n * cm for n in [2.5, 1.2, 1.0]]
 
     pdf.setLineWidth(0.5)
-    [pdf.circle(0, 0, r) for r in [x_centre - 1 * cm, x_centre - 1.2 * cm,  inner_radius]]
+    [pdf.circle(0, 0, r) for r in radii]
 
     pdf.setLineWidth(0.25)
 
     for point in compass:
         pdf.rotate(-compass.angle(point))
 
-        pdf.line(0, 1 * cm, 0, inner_radius)
+        pdf.line(0, 1 * cm, 0, radii[0])
 
         if compass.is_cardinal(point):
             pdf.setFont("Times-Bold", 24)
@@ -184,15 +184,15 @@ def draw_compass_card():
         elif compass.is_half_wind(point):
             pdf.setFont("Times-Roman", 12)
             p = pdf.beginPath()
-            p.moveTo(0, inner_radius - 0.015 * cm)
-            p.lineTo(0.1 * cm, inner_radius - 0.75 * cm)
-            p.lineTo(-0.1 * cm, inner_radius - 0.75 * cm)
+            p.moveTo(0, radii[0] - 0.015 * cm)
+            p.lineTo(0.1 * cm, radii[0] - 0.75 * cm)
+            p.lineTo(-0.1 * cm, radii[0] - 0.75 * cm)
             p.close()
             pdf.drawPath(p, fill=1)
         else:
             pdf.setFont("Times-Roman", 8)
 
-        pdf.drawCentredString(0, x_centre - 2.25 * cm, "{}".format(compass.abbreviate(point)))
+        pdf.drawCentredString(0, compass_radius - 2.25 * cm, "{}".format(compass.abbreviate(point)))
 
         pdf.rotate(compass.angle(point))
 
@@ -200,16 +200,16 @@ def draw_compass_card():
     ordinals = [pt for pt in compass if compass.is_ordinal(pt)]
 
     for point in ordinals + cardinals:
-        draw_arrow(pdf, compass.angle(point), inner_radius)
+        draw_arrow(pdf, compass.angle(point), radii[0])
 
     for deg in range(360):
         pdf.rotate(-deg)
         if deg % 10 == 0:
             pdf.setLineWidth(1.0)
-            pdf.drawCentredString(0, x_centre - 1.5 * cm, "{:2d}°".format(deg))
+            pdf.drawCentredString(0, compass_radius - 1.5 * cm, "{:2d}°".format(deg))
         else:
             pdf.setLineWidth(0.25)
-        pdf.line(0, x_centre - 1 * cm, 0, x_centre - 1.2 * cm)
+        pdf.line(0, radii[1], 0, radii[2])
         pdf.rotate(deg)
 
     pdf.restoreState()
