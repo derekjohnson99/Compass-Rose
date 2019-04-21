@@ -45,21 +45,23 @@ class Compass():
         ]
 
     def __iter__(self):
+        'Iterates through all the points in the compass.'
         return iter(self.points)
 
     def is_cardinal(self, point):
-        'Returns true if point is North, East, West or South, false otherwise'
+        'Returns true if point is North, East, West or South, false otherwise.'
         return self.index(point) % 8 == 0
 
     def is_ordinal(self, point):
-        'Returns true if point is Northeast, Southeast, Southwest or Northwest, false otherwise'
+        'Returns true if point is Northeast, Southeast, Southwest or Northwest, false otherwise.'
         return self.index(point) % 4 == 0 and not self.is_cardinal(point)
 
     def is_half_wind(self, point):
+        'Returns true if the point bisects the angle between the principle winds.'
         return self.index(point) % 2 == 0 and not self.is_cardinal(point) and not self.is_ordinal(point)
 
     def abbreviate(self, point):
-        "Abbreviate the given compass point"
+        'Abbreviate the given compass point.'
         abbrev = point.lower()
         abbrev = abbrev.replace('north', 'N')
         abbrev = abbrev.replace('east', 'E')
@@ -69,6 +71,7 @@ class Compass():
         return abbrev
 
     def get_point(self, abbreviated_point):
+        'Returns the full name of the abbreviated point.'
         expansions = { 'N': 'North', 'E': 'East', 'S': 'South', 'W': 'West', 'b': ' by ' }
         point = ""
         for letter in abbreviated_point:
@@ -76,10 +79,12 @@ class Compass():
         return point.capitalize()
 
     def angle(self, point):
+        'Returns the angle of the given point in degrees.'
         assert point in self.points
         return 360.0 / len(self.points) * self.index(point)
 
     def index(self, point):
+        'Returns the list index of the given point.'
         assert point in self.points
         return self.points.index(point)
 
@@ -149,8 +154,9 @@ def draw_arrow(pdf, angle, length):
     pdf.setFillColor('black')
     pdf.rotate(angle)
 
-def draw_compass_card(compass):
+def draw_compass_card():
 
+    compass = Compass()
     pdf = Canvas("CompassRose.pdf", pagesize=portrait(A4))
 
     width, height = portrait(A4)
@@ -212,5 +218,4 @@ def draw_compass_card(compass):
     pdf.save()
 
 if __name__ == '__main__':
-    compass = Compass()
-    draw_compass_card(compass)
+    draw_compass_card()
