@@ -1,9 +1,4 @@
 # coding: utf-8
-import math
-from collections import OrderedDict
-from reportlab.pdfgen.canvas import Canvas
-from reportlab.lib.units import cm
-from reportlab.lib.pagesizes import A4, portrait, landscape
 import unittest
 
 class Compass():
@@ -133,6 +128,10 @@ class testCompass(unittest.TestCase):
         for (point, expected_angle) in test_points:
             with self.subTest(point):
                 self.assertEqual(self.compass.angle(point), expected_angle)
+
+from reportlab.pdfgen.canvas import Canvas
+from reportlab.lib.units import cm
+from reportlab.lib.pagesizes import A4, portrait, landscape
 
 def draw_arrow(pdf, angle, length):
     w = 1.0
