@@ -133,88 +133,98 @@ from reportlab.pdfgen.canvas import Canvas
 from reportlab.lib.units import cm
 from reportlab.lib.pagesizes import A4, portrait, landscape
 
-def draw_arrow(pdf, angle, length):
-    w = 1.0
-    pdf.rotate(-angle)
-    pdf.setFillColor('black')
-    p = pdf.beginPath()
-    p.moveTo(0, 0)
-    p.lineTo(0, length)
-    p.lineTo(w * cm, w * cm)
-    p.close()
-    pdf.drawPath(p, fill=1)
-    pdf.setFillColor('white')
-    p = pdf.beginPath()
-    p.moveTo(0, 0)
-    p.lineTo(0, length)
-    p.lineTo(-w * cm, w * cm)
-    p.close()
-    pdf.drawPath(p, fill=1)
-    pdf.setFillColor('black')
-    pdf.rotate(angle)
+class DrawCompass():
 
-def draw_compass_card():
+    def __init__(self):
+        self.compass = Compass()
+        self.pdf = Canvas("CanvasRose.pdf", pagesize=portrait(A4))
+        width, height = portrait(A4)
+        self.compass_radius = width / 2.0
+        self.radii = [self.compass_radius - n * cm for n in [2.5, 1.2, 1.0]]
 
-    compass = Compass()
-    pdf = Canvas("CompassRose.pdf", pagesize=portrait(A4))
+    def draw_arrow(self, angle):
+        w = 1.0
+        self.pdf.rotate(-angle)
+        self.pdf.setFillColor('black')
+        p = self.pdf.beginPath()
+        p.moveTo(0, 0)
+        p.lineTo(0, self.radii[0])
+        p.lineTo(w * cm, w * cm)
+        p.close()
+        self.pdf.drawPath(p, fill=1)
+        self.pdf.setFillColor('white')
+        p = self.pdf.beginPath()
+        p.moveTo(0, 0)
+        p.lineTo(0, self.radii[0])
+        p.lineTo(-w * cm, w * cm)
+        p.close()
+        self.pdf.drawPath(p, fill=1)
+        self.pdf.setFillColor('black')
+        self.pdf.rotate(angle)
 
-    width, height = portrait(A4)
-    compass_radius = width / 2.0
+    def draw_points(self):
+        self.pdf.setLineWidth(0.25)
 
-    pdf.saveState()
-    pdf.translate(compass_radius, compass_radius)
+        for point in self.compass:
+            self.pdf.rotate(-self.compass.angle(point))
 
-    radii = [compass_radius - n * cm for n in [2.5, 1.2, 1.0]]
+            self.pdf.line(0, 1 * cm, 0, self.radii[0])
 
-    pdf.setLineWidth(0.5)
-    [pdf.circle(0, 0, r) for r in radii]
+            if self.compass.is_cardinal(point):
+                self.pdf.setFont("Times-Bold", 24)
+            elif self.compass.is_ordinal(point):
+                self.pdf.setFont("Times-Bold", 18)
+            elif self.compass.is_half_wind(point):
+                self.pdf.setFont("Times-Roman", 12)
+                p = self.pdf.beginPath()
+                p.moveTo(0, self.radii[0] - 0.015 * cm)
+                p.lineTo(0.1 * cm, self.radii[0] - 0.75 * cm)
+                p.lineTo(-0.1 * cm, self.radii[0] - 0.75 * cm)
+                p.close()
+                self.pdf.drawPath(p, fill=1)
+            else:
+                self.pdf.setFont("Times-Roman", 8)
 
-    pdf.setLineWidth(0.25)
+            self.pdf.drawCentredString(0, self.radii[2] - 1.25 * cm, "{}".format(self.compass.abbreviate(point)))
 
-    for point in compass:
-        pdf.rotate(-compass.angle(point))
+            self.pdf.rotate(self.compass.angle(point))
 
-        pdf.line(0, 1 * cm, 0, radii[0])
+    def draw_degrees(self):
+        for deg in range(360):
+            self.pdf.rotate(-deg)
+            if deg % 10 == 0:
+                self.pdf.setLineWidth(1.0)
+                self.pdf.drawCentredString(0, self.radii[2] - 0.5 * cm, "{:2d}°".format(deg))
+            else:
+                self.pdf.setLineWidth(0.25)
+            self.pdf.line(0, self.radii[1], 0, self.radii[2])
+            self.pdf.rotate(deg)
 
-        if compass.is_cardinal(point):
-            pdf.setFont("Times-Bold", 24)
-        elif compass.is_ordinal(point):
-            pdf.setFont("Times-Bold", 18)
-        elif compass.is_half_wind(point):
-            pdf.setFont("Times-Roman", 12)
-            p = pdf.beginPath()
-            p.moveTo(0, radii[0] - 0.015 * cm)
-            p.lineTo(0.1 * cm, radii[0] - 0.75 * cm)
-            p.lineTo(-0.1 * cm, radii[0] - 0.75 * cm)
-            p.close()
-            pdf.drawPath(p, fill=1)
-        else:
-            pdf.setFont("Times-Roman", 8)
+    def draw_circles(self):
+        self.pdf.setLineWidth(0.5)
+        [self.pdf.circle(0, 0, r) for r in self.radii]
 
-        pdf.drawCentredString(0, compass_radius - 2.25 * cm, "{}".format(compass.abbreviate(point)))
 
-        pdf.rotate(compass.angle(point))
+    def draw_compass_card(self):
 
-    cardinals = [pt for pt in compass if compass.is_cardinal(pt)]
-    ordinals = [pt for pt in compass if compass.is_ordinal(pt)]
+        self.pdf.saveState()
+        self.pdf.translate(self.compass_radius, self.compass_radius)
 
-    for point in ordinals + cardinals:
-        draw_arrow(pdf, compass.angle(point), radii[0])
+        self.draw_points()
+        self.draw_degrees()
+        self.draw_circles()
 
-    for deg in range(360):
-        pdf.rotate(-deg)
-        if deg % 10 == 0:
-            pdf.setLineWidth(1.0)
-            pdf.drawCentredString(0, compass_radius - 1.5 * cm, "{:2d}°".format(deg))
-        else:
-            pdf.setLineWidth(0.25)
-        pdf.line(0, radii[1], 0, radii[2])
-        pdf.rotate(deg)
+        cardinals = [pt for pt in self.compass if self.compass.is_cardinal(pt)]
+        ordinals = [pt for pt in self.compass if self.compass.is_ordinal(pt)]
 
-    pdf.restoreState()
+        for point in ordinals + cardinals:
+            self.draw_arrow(self.compass.angle(point))
 
-    pdf.showPage()
-    pdf.save()
+        self.pdf.restoreState()
+
+        self.pdf.showPage()
+        self.pdf.save()
 
 if __name__ == '__main__':
-    draw_compass_card()
+    pic = DrawCompass()
+    pic.draw_compass_card()
