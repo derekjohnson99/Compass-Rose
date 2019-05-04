@@ -143,7 +143,7 @@ class DrawCompass():
         self.inner_radius = self.half_page_width - 2.5 * cm
         self.outer_radius = self.half_page_width - 1.0 * cm
 
-    def draw_closed_path(self, points, colour):
+    def draw_closed_path(self, points, colour='black'):
         self.pdf.setFillColor(colour)
         p = self.pdf.beginPath()
         p.moveTo(*points[0])
@@ -155,12 +155,13 @@ class DrawCompass():
     def draw_arrows(self):
         cardinals = [pt for pt in self.compass if self.compass.is_cardinal(pt)]
         ordinals = [pt for pt in self.compass if self.compass.is_ordinal(pt)]
+        l = self.inner_radius
         w = 1.0 * cm
 
         for point in ordinals + cardinals:
             self.pdf.rotate(-self.compass.angle(point))
-            self.draw_closed_path([(0, 0), (0, self.inner_radius), (w, w)], 'black')
-            self.draw_closed_path([(0, 0), (0, self.inner_radius), (-w, w)], 'white')
+            self.draw_closed_path([(0, 0), (0, l), (w, w)], 'black')
+            self.draw_closed_path([(0, 0), (0, l), (-w, w)], 'white')
             self.pdf.rotate(self.compass.angle(point))
 
         self.pdf.setFillColor('black')
@@ -170,11 +171,14 @@ class DrawCompass():
         arrow_point = self.inner_radius - 0.015 * cm
         arrow_head = self.inner_radius - 0.75 * cm
         arrow_width = 0.1 * cm
+        text_offset = self.inner_radius + 0.25 * cm
+        line_base = 0.1 * cm
+        line_length = self.inner_radius
 
         for point in self.compass:
             self.pdf.rotate(-self.compass.angle(point))
 
-            self.pdf.line(0, 1 * cm, 0, self.inner_radius)
+            self.pdf.line(0, line_base, 0, line_length)
 
             if self.compass.is_cardinal(point):
                 self.pdf.setFont("Times-Bold", 24)
@@ -182,11 +186,11 @@ class DrawCompass():
                 self.pdf.setFont("Times-Bold", 18)
             elif self.compass.is_half_wind(point):
                 self.pdf.setFont("Times-Roman", 12)
-                self.draw_closed_path([(0, arrow_point), (arrow_width, arrow_head), (-arrow_width, arrow_head)], 'black')
+                self.draw_closed_path([(0, arrow_point), (arrow_width, arrow_head), (-arrow_width, arrow_head)])
             else:
                 self.pdf.setFont("Times-Roman", 8)
 
-            self.pdf.drawCentredString(0, self.inner_radius + 0.25 * cm, "{}".format(self.compass.abbreviate(point)))
+            self.pdf.drawCentredString(0, text_offset, "{}".format(self.compass.abbreviate(point)))
 
             self.pdf.rotate(self.compass.angle(point))
 
