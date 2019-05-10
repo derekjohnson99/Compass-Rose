@@ -160,11 +160,9 @@ class DrawCompass():
 
         for point in ordinals + cardinals:
             self.pdf.rotate(-self.compass.angle(point))
-            self.draw_closed_path([(0, 0), (0, l), (w, w)], 'black')
             self.draw_closed_path([(0, 0), (0, l), (-w, w)], 'white')
+            self.draw_closed_path([(0, 0), (0, l), (w, w)], 'black')
             self.pdf.rotate(self.compass.angle(point))
-
-        self.pdf.setFillColor('black')
 
     def draw_points(self):
         self.pdf.setLineWidth(0.25)
