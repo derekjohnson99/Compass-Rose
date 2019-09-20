@@ -188,7 +188,7 @@ class DrawCompass():
             else:
                 self.pdf.setFont("Times-Roman", 8)
 
-            self.pdf.drawCentredString(0, text_offset, "{}".format(self.compass.abbreviate(point)))
+            self.pdf.drawCentredString(0, text_offset, f"{self.compass.abbreviate(point)}")
 
             self.pdf.rotate(self.compass.angle(point))
 
@@ -197,7 +197,7 @@ class DrawCompass():
             self.pdf.rotate(-deg)
             if deg % 10 == 0:
                 self.pdf.setLineWidth(1.0)
-                self.pdf.drawCentredString(0, self.outer_radius - 0.5 * cm, "{:2d}°".format(deg))
+                self.pdf.drawCentredString(0, self.outer_radius - 0.5 * cm, f"{deg:2d}°")
             else:
                 self.pdf.setLineWidth(0.25)
             self.pdf.line(0, self.outer_radius - 0.2 * cm, 0, self.outer_radius)
