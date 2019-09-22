@@ -1,7 +1,17 @@
 # coding: utf-8
+'''
+A program to draw a PDF of a compass card showing all 32 points of a compass
+'''
 import unittest
+from reportlab.pdfgen.canvas import Canvas
+from reportlab.lib.units import cm
+from reportlab.lib.pagesizes import A4, portrait
 
 class Compass():
+    '''
+    A class to encapusalte all the points in a compass, including
+    their names and angles.
+    '''
 
     def __init__(self):
         self.points = [
@@ -67,7 +77,13 @@ class Compass():
 
     def get_point(self, abbreviated_point):
         'Returns the full name of the abbreviated point.'
-        expansions = { 'N': 'North', 'E': 'East', 'S': 'South', 'W': 'West', 'b': ' by ' }
+        expansions = {
+            'N': 'North',
+            'E': 'East',
+            'S': 'South',
+            'W': 'West',
+            'b': ' by '
+        }
         point = ""
         for letter in abbreviated_point:
             point += expansions[letter]
@@ -83,7 +99,8 @@ class Compass():
         assert point in self.points
         return self.points.index(point)
 
-class testCompass(unittest.TestCase):
+class TestCompass(unittest.TestCase):
+    "Test the Compass class"
 
     def setUp(self):
         self.compass = Compass()
@@ -129,11 +146,8 @@ class testCompass(unittest.TestCase):
             with self.subTest(point):
                 self.assertEqual(self.compass.angle(point), expected_angle)
 
-from reportlab.pdfgen.canvas import Canvas
-from reportlab.lib.units import cm
-from reportlab.lib.pagesizes import A4, portrait, landscape
-
 class DrawCompass():
+    "Draw a full compass cards with all 32 points"
 
     def __init__(self):
         self.compass = Compass()
@@ -144,15 +158,17 @@ class DrawCompass():
         self.outer_radius = self.half_page_width - 1.0 * cm
 
     def draw_closed_path(self, points, colour='black'):
+        "Helper method to draw a closed path"
         self.pdf.setFillColor(colour)
         p = self.pdf.beginPath()
         p.moveTo(*points[0])
         for pt in points[1:]:
             p.lineTo(*pt)
-        p.close
+        p.close()
         self.pdf.drawPath(p, fill=1)
 
     def draw_arrows(self):
+        "Draw large two-colour arrows for the major compass points"
         cardinals = [pt for pt in self.compass if self.compass.is_cardinal(pt)]
         ordinals = [pt for pt in self.compass if self.compass.is_ordinal(pt)]
         l = self.inner_radius
@@ -165,6 +181,7 @@ class DrawCompass():
             self.pdf.rotate(self.compass.angle(point))
 
     def draw_points(self):
+        "Draw each point of the compass"
         self.pdf.setLineWidth(0.25)
         arrow_point = self.inner_radius - 0.015 * cm
         arrow_head = self.inner_radius - 0.75 * cm
@@ -193,6 +210,7 @@ class DrawCompass():
             self.pdf.rotate(self.compass.angle(point))
 
     def draw_degrees(self):
+        "Draw the 360 degrees as ticks, with every ten degrees showing the value"
         for deg in range(360):
             self.pdf.rotate(-deg)
             if deg % 10 == 0:
@@ -204,12 +222,14 @@ class DrawCompass():
             self.pdf.rotate(deg)
 
     def draw_circles(self):
+        "Draw the circles surrounding the compass"
         self.pdf.setLineWidth(0.5)
         self.pdf.circle(0, 0, self.inner_radius)
         self.pdf.circle(0, 0, self.outer_radius - 0.2 * cm)
         self.pdf.circle(0, 0, self.outer_radius)
 
     def draw_compass_card(self):
+        "Main method to draw a full compass card"
 
         self.pdf.saveState()
         self.pdf.translate(self.half_page_width, self.half_page_width)
@@ -225,5 +245,5 @@ class DrawCompass():
         self.pdf.save()
 
 if __name__ == '__main__':
-    pic = DrawCompass()
-    pic.draw_compass_card()
+    PIC = DrawCompass()
+    PIC.draw_compass_card()
