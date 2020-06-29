@@ -54,18 +54,23 @@ class Compass():
         return iter(self.points)
 
     def is_cardinal(self, point):
-        'Returns true if point is North, East, West or South, false otherwise.'
+        'Returns true if point is North, East, West or South (aka "basic wind"), false otherwise.'
         return self.index(point) % 8 == 0
 
     def is_ordinal(self, point):
         'Returns true if point is Northeast, Southeast, Southwest or Northwest, false otherwise.'
         return self.index(point) % 4 == 0 and not self.is_cardinal(point)
 
-    def is_half_wind(self, point):
-        'Returns true if the point bisects the angle between the principle winds.'
-        return self.index(point) % 2 == 0 and not self.is_cardinal(point) and not self.is_ordinal(point)
+    def is_principal_wind(self, point):
+        'Returns true if point is one of cardinal or ordinal points'
+        return self.is_cardinal(point) or self.is_ordinal(point)
 
-    def abbreviate(self, point):
+    def is_half_wind(self, point):
+        'Returns true if the point bisects the angle between the principal winds.'
+        return self.index(point) % 2 == 0 and not self.is_principal_wind(point)
+
+    @staticmethod
+    def abbreviate(point):
         'Abbreviate the given compass point.'
         abbrev = point.lower()
         abbrev = abbrev.replace('north', 'N')
@@ -74,20 +79,6 @@ class Compass():
         abbrev = abbrev.replace('west', 'W')
         abbrev = abbrev.replace('-', '')
         return abbrev
-
-    def get_point(self, abbreviated_point):
-        'Returns the full name of the abbreviated point.'
-        expansions = {
-            'N': 'North',
-            'E': 'East',
-            'S': 'South',
-            'W': 'West',
-            'b': ' by '
-        }
-        point = ""
-        for letter in abbreviated_point:
-            point += expansions[letter]
-        return point.capitalize()
 
     def angle(self, point):
         'Returns the angle of the given point in degrees.'
@@ -151,7 +142,7 @@ class DrawCompass():
 
     def __init__(self):
         self.compass = Compass()
-        self.pdf = Canvas("CompassRose.pdf", pagesize=portrait(A4))
+        self.pdf = Canvas("compass_rose.pdf", pagesize=portrait(A4))
         width, height = portrait(A4)
         self.half_page_width = width / 2.0
         self.inner_radius = self.half_page_width - 2.5 * cm
@@ -160,24 +151,24 @@ class DrawCompass():
     def draw_closed_path(self, points, colour='black'):
         "Helper method to draw a closed path"
         self.pdf.setFillColor(colour)
-        p = self.pdf.beginPath()
-        p.moveTo(*points[0])
-        for pt in points[1:]:
-            p.lineTo(*pt)
-        p.close()
-        self.pdf.drawPath(p, fill=1)
+        pdf_path = self.pdf.beginPath()
+        pdf_path.moveTo(*points[0])
+        for pnt in points[1:]:
+            pdf_path.lineTo(*pnt)
+        pdf_path.close()
+        self.pdf.drawPath(pdf_path, fill=1)
 
     def draw_arrows(self):
         "Draw large two-colour arrows for the major compass points"
         cardinals = [pt for pt in self.compass if self.compass.is_cardinal(pt)]
         ordinals = [pt for pt in self.compass if self.compass.is_ordinal(pt)]
-        l = self.inner_radius
-        w = 1.0 * cm
+        length = self.inner_radius
+        width = 1.0 * cm
 
         for point in ordinals + cardinals:
             self.pdf.rotate(-self.compass.angle(point))
-            self.draw_closed_path([(0, 0), (0, l), (-w, w)], 'white')
-            self.draw_closed_path([(0, 0), (0, l), (w, w)], 'black')
+            self.draw_closed_path([(0, 0), (0, length), (-width, width)], 'white')
+            self.draw_closed_path([(0, 0), (0, length), (width, width)], 'black')
             self.pdf.rotate(self.compass.angle(point))
 
     def draw_points(self):
