@@ -235,6 +235,10 @@ class DrawCompass():
         self.pdf.showPage()
         self.pdf.save()
 
+def main():
+    "main function"
+    pic = DrawCompass()
+    pic.draw_compass_card()
+
 if __name__ == '__main__':
-    PIC = DrawCompass()
-    PIC.draw_compass_card()
+    main()
