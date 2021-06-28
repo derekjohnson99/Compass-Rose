@@ -47,44 +47,57 @@ class Compass():
 
     def __iter__(self):
         'Iterates through all the points in the compass.'
-        return iter(self.points)
+        self._point = None
+        return self
 
-    def is_cardinal(self, point):
+    def __next__(self):
+        'Provides the next point on the compass.'
+        if self._point is None:
+            self._point = 'North'
+        elif self.index() + 1 < len(self.points):
+            self._point = self.points[self.index() + 1]
+        else:
+            raise StopIteration
+        return self
+
+    def set(self, point):
+        self._point = point
+
+    def angle(self):
+        'Returns the angle of the given point in degrees.'
+        assert self._point in self.points
+        return 360.0 / len(self.points) * self.index()
+
+    def index(self):
+        'Returns the list index of the given point.'
+        assert self._point in self.points
+        return self.points.index(self._point)
+
+    def is_cardinal(self):
         'Returns true if point is North, East, West or South (aka "basic wind"), false otherwise.'
-        return self.index(point) % 8 == 0
+        return self.index() % 8 == 0
 
-    def is_ordinal(self, point):
+    def is_ordinal(self):
         'Returns true if point is Northeast, Southeast, Southwest or Northwest, false otherwise.'
-        return self.index(point) % 4 == 0 and not self.is_cardinal(point)
+        return self.index() % 4 == 0 and not self.is_cardinal()
 
-    def is_principal_wind(self, point):
+    def is_principal_wind(self):
         'Returns true if point is one of cardinal or ordinal points'
-        return self.is_cardinal(point) or self.is_ordinal(point)
+        return self.is_cardinal() or self.is_ordinal()
 
-    def is_half_wind(self, point):
+    def is_half_wind(self):
         'Returns true if the point bisects the angle between the principal winds.'
-        return self.index(point) % 2 == 0 and not self.is_principal_wind(point)
+        return self.index() % 2 == 0 and not self.is_principal_wind()
 
-    @staticmethod
-    def abbreviate(point):
+    def abbreviate(self):
         'Abbreviate the given compass point.'
-        abbrev = point.lower()
+        abbrev = self._point.lower()
         abbrev = abbrev.replace('north', 'N')
         abbrev = abbrev.replace('east', 'E')
         abbrev = abbrev.replace('south', 'S')
         abbrev = abbrev.replace('west', 'W')
         abbrev = abbrev.replace('-', '')
         return abbrev
-
-    def angle(self, point):
-        'Returns the angle of the given point in degrees.'
-        assert point in self.points
-        return 360.0 / len(self.points) * self.index(point)
-
-    def index(self, point):
-        'Returns the list index of the given point.'
-        assert point in self.points
-        return self.points.index(point)
 
 class TestCompass(unittest.TestCase):
     "Test the Compass class"
@@ -94,14 +107,19 @@ class TestCompass(unittest.TestCase):
 
     def test_cardinals(self):
         'The compass class can correctly identify cardinal points'
-        self.assertTrue(self.compass.is_cardinal('North'))
-        self.assertFalse(self.compass.is_cardinal('Northwest'))
+        self.compass.set('North')
+        self.assertTrue(self.compass.is_cardinal())
+        self.compass.set('Northwest')
+        self.assertFalse(self.compass.is_cardinal())
 
     def test_ordinals(self):
         'The compass class can correctly identify ordinal points'
-        self.assertTrue(self.compass.is_ordinal('Northwest'))
-        self.assertFalse(self.compass.is_ordinal('North'))
-        self.assertFalse(self.compass.is_ordinal('Southwest by west'))
+        self.compass.set('Northwest')
+        self.assertTrue(self.compass.is_ordinal())
+        self.compass.set('North')
+        self.assertFalse(self.compass.is_ordinal())
+        self.compass.set('Southwest by west')
+        self.assertFalse(self.compass.is_ordinal())
 
     def test_abbreviations(self):
         'The compass class can abbreviate points correctly'
@@ -115,7 +133,8 @@ class TestCompass(unittest.TestCase):
 
         for (point, expected_abbreviation) in test_points:
             with self.subTest(point):
-                self.assertEqual(self.compass.abbreviate(point), expected_abbreviation)
+                self.compass.set(point)
+                self.assertEqual(self.compass.abbreviate(), expected_abbreviation)
 
     def test_angle(self):
         'Points are at correct angle'
@@ -131,7 +150,8 @@ class TestCompass(unittest.TestCase):
 
         for (point, expected_angle) in test_points:
             with self.subTest(point):
-                self.assertEqual(self.compass.angle(point), expected_angle)
+                self.compass.set(point)
+                self.assertEqual(self.compass.angle(), expected_angle)
 
 if __name__ == '__main__':
     pass

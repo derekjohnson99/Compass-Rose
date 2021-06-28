@@ -11,7 +11,6 @@ class DrawCompass():
     "Draw a full compass cards with all 32 points"
 
     def __init__(self):
-        self.compass = Compass()
         self.pdf = Canvas("compass_rose.pdf", pagesize=portrait(A4))
         width, _ = portrait(A4)
         self.half_page_width = width / 2.0
@@ -30,16 +29,16 @@ class DrawCompass():
 
     def draw_arrows(self):
         "Draw large two-colour arrows for the major compass points"
-        cardinals = [pt for pt in self.compass if self.compass.is_cardinal(pt)]
-        ordinals = [pt for pt in self.compass if self.compass.is_ordinal(pt)]
+        cardinal_angles = [point.angle() for point in Compass() if point.is_cardinal()]
+        ordinal_angles = [point.angle() for point in Compass() if point.is_ordinal()]
         length = self.inner_radius
         width = 1.0 * cm
 
-        for point in ordinals + cardinals:
-            self.pdf.rotate(-self.compass.angle(point))
+        for angle in ordinal_angles + cardinal_angles:
+            self.pdf.rotate(-angle)
             self.draw_closed_path([(0, 0), (0, length), (-width, width)], 'white')
             self.draw_closed_path([(0, 0), (0, length), (width, width)], 'black')
-            self.pdf.rotate(self.compass.angle(point))
+            self.pdf.rotate(angle)
 
     def draw_points(self):
         "Draw each point of the compass"
@@ -51,16 +50,16 @@ class DrawCompass():
         line_base = 0.1 * cm
         line_length = self.inner_radius
 
-        for point in self.compass:
-            self.pdf.rotate(-self.compass.angle(point))
+        for point in Compass():
+            self.pdf.rotate(-point.angle())
 
             self.pdf.line(0, line_base, 0, line_length)
 
-            if self.compass.is_cardinal(point):
+            if point.is_cardinal():
                 self.pdf.setFont("Times-Bold", 24)
-            elif self.compass.is_ordinal(point):
+            elif point.is_ordinal():
                 self.pdf.setFont("Times-Bold", 18)
-            elif self.compass.is_half_wind(point):
+            elif point.is_half_wind():
                 self.pdf.setFont("Times-Roman", 12)
                 self.draw_closed_path([(0, arrow_point),
                                        (arrow_width, arrow_head),
@@ -68,9 +67,9 @@ class DrawCompass():
             else:
                 self.pdf.setFont("Times-Roman", 8)
 
-            self.pdf.drawCentredString(0, text_offset, f"{self.compass.abbreviate(point)}")
+            self.pdf.drawCentredString(0, text_offset, f"{point.abbreviate()}")
 
-            self.pdf.rotate(self.compass.angle(point))
+            self.pdf.rotate(point.angle())
 
     def draw_degrees(self):
         "Draw the 360 degrees as ticks, with every ten degrees showing the value"
