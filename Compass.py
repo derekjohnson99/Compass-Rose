@@ -111,6 +111,8 @@ class TestCompass(unittest.TestCase):
         self.assertTrue(self.compass.is_cardinal())
         self.compass.set('Northwest')
         self.assertFalse(self.compass.is_cardinal())
+        cardinals = [point for point in Compass() if point.is_cardinal()]
+        self.assertEqual(len(cardinals), 4)
 
     def test_ordinals(self):
         'The compass class can correctly identify ordinal points'
@@ -120,6 +122,34 @@ class TestCompass(unittest.TestCase):
         self.assertFalse(self.compass.is_ordinal())
         self.compass.set('Southwest by west')
         self.assertFalse(self.compass.is_ordinal())
+        ordinals = [point for point in Compass() if point.is_ordinal()]
+        self.assertEqual(len(ordinals), 4)
+
+    def test_principal_wind(self):
+        'Test the is_principal_wind method'
+        self.compass.set('Southwest')
+        self.assertTrue(self.compass.is_principal_wind())
+        self.compass.set('East')
+        self.assertTrue(self.compass.is_principal_wind())
+        self.compass.set('South-southwest')
+        self.assertFalse(self.compass.is_principal_wind())
+        self.compass.set('Northwest by west')
+        self.assertFalse(self.compass.is_principal_wind())
+        principal_winds = [point for point in Compass() if point.is_principal_wind()]
+        self.assertEqual(len(principal_winds), 8)
+
+    def test_half_wind(self):
+        'Test the is_half_wind method'
+        self.compass.set('Northeast')
+        self.assertFalse(self.compass.is_half_wind())
+        self.compass.set('West')
+        self.assertFalse(self.compass.is_half_wind())
+        self.compass.set('West-southwest')
+        self.assertTrue(self.compass.is_half_wind())
+        self.compass.set('Northwest by west')
+        self.assertFalse(self.compass.is_half_wind())
+        half_winds = [point for point in Compass() if point.is_half_wind()]
+        self.assertEqual(len(half_winds), 8)
 
     def test_abbreviations(self):
         'The compass class can abbreviate points correctly'
@@ -152,6 +182,15 @@ class TestCompass(unittest.TestCase):
             with self.subTest(point):
                 self.compass.set(point)
                 self.assertEqual(self.compass.angle(), expected_angle)
+
+    def test_iterations(self):
+        'Compass object will iterate through 32 points, then raise a StopIteration exception'
+        point_count = 0
+        it = iter(Compass())
+        with self.assertRaises(StopIteration):
+            while next(it):
+                point_count += 1
+        self.assertEqual(point_count, 32)
 
 if __name__ == '__main__':
     pass
