@@ -61,6 +61,7 @@ class Compass():
         return self
 
     def set(self, point):
+        assert(point in self.points)
         self._point = point
 
     def angle(self):
@@ -104,6 +105,15 @@ class TestCompass(unittest.TestCase):
 
     def setUp(self):
         self.compass = Compass()
+
+    def test_set_point(self):
+        'Setting compass points checks for valid values'
+        with self.assertRaises(AssertionError):
+            self.compass.set("north")
+        with self.assertRaises(AssertionError):
+            self.compass.set("Norf")
+        with self.assertRaises(AssertionError):
+            self.compass.set("NorthEast")
 
     def test_cardinals(self):
         'The compass class can correctly identify cardinal points'
